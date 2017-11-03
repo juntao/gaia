@@ -1,27 +1,46 @@
+project_name: gaia
 builds:
-  - main: cmd/tendermint/main.go
-    binary: tendereum
-    ldflags: -extldflags "-static" -X version.GitCommit={{.Commit}}
-    env:
-      - CGO_ENABLED=0
-    goos:
+  - goos:
       - linux
       - darwin
       - windows
-      - freebsd
     goarch:
       - 386
       - amd64
-      - arm64
-
+    main: cmd/gaia/main.go
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    binary: gaia
+  - goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - 386
+      - amd64
+    main: cmd/gaiacli/main.go
+    ldflags: -s -w -X main.version={{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}}
+    env:
+      - CGO_ENABLED=0
+    binary: gaiacli
 archive:
-  name_template: '{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
-  replacements:
-    darwin: Darwin
-    linux: Linux
-    windows: Windows
-    386: i386
-    amd64: x86_64
+  format: tar.gz
   format_overrides:
     - goos: windows
       format: zip
+  replacements:
+    darwin: macOS
+    386: i386
+    amd64: x86_64
+  name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+  files:
+    - LICENSE
+    - README.md
+snapshot:
+  name_template: SNAPSHOT-{{ .Commit }}
+checksum:
+  name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
+# dockers:
+#   - image: cosmos/gaia
+#     latest: true
