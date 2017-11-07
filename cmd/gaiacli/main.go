@@ -9,11 +9,11 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/commands"
 	"github.com/cosmos/cosmos-sdk/client/commands/auto"
+	"github.com/cosmos/cosmos-sdk/client/commands/commits"
 	"github.com/cosmos/cosmos-sdk/client/commands/keys"
 	"github.com/cosmos/cosmos-sdk/client/commands/proxy"
 	"github.com/cosmos/cosmos-sdk/client/commands/query"
 	rpccmd "github.com/cosmos/cosmos-sdk/client/commands/rpc"
-	"github.com/cosmos/cosmos-sdk/client/commands/commits"
 	txcmd "github.com/cosmos/cosmos-sdk/client/commands/txs"
 	authcmd "github.com/cosmos/cosmos-sdk/modules/auth/commands"
 	basecmd "github.com/cosmos/cosmos-sdk/modules/base/commands"
@@ -75,6 +75,7 @@ func main() {
 
 		stakecmd.CmdBond,
 		stakecmd.CmdUnbond,
+		stakecmd.CmdDeclareCandidacy,
 	)
 
 	// Set up the various commands to use
@@ -91,6 +92,6 @@ func main() {
 		auto.AutoCompleteCmd,
 	)
 
-	cmd := cli.PrepareMainCmd(GaiaCli, "BC", os.ExpandEnv("$HOME/.cosmos-gaia-cli"))
+	cmd := cli.PrepareMainCmd(GaiaCli, "GA", os.ExpandEnv("$HOME/.cosmos-gaia-cli"))
 	cmd.Execute()
 }
