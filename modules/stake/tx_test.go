@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/modules/coin"
 
 	crypto "github.com/tendermint/go-crypto"
+	wire "github.com/tendermint/go-wire"
 )
 
 var (
@@ -49,5 +50,60 @@ func TestBondUpdateValidateBasic(t *testing.T) {
 			assert.Equal(t, tt.wantErr, tx.ValidateBasic() != nil,
 				"test: %v, tx.ValidateBasic: %v", tt.name, tx.ValidateBasic())
 		})
+	}
+}
+
+func TestAllAreTx(t *testing.T) {
+	assert := assert.New(t)
+
+	// make sure all types construct properly
+	pubKey := newPubKey("1234567890")
+	bond := coin.Coin{Denom: "ATOM", Amount: 1234321}
+
+	// Note that Wrap is only defined on BondUpdate, so when you call it,
+	// you lose all info on the embedding type. Please add Wrap()
+	// method to all the parents
+	delTx := NewTxDelegate(bond, pubKey)
+	_, ok := delTx.Unwrap().(TxDelegate)
+	assert.True(ok, "%#v", delTx)
+
+	ubndTx := NewTxUnbond(bond, pubKey)
+	_, ok = ubndTx.Unwrap().(TxUnbond)
+	assert.True(ok, "%#v", ubndTx)
+
+	declTx := NewTxDeclareCandidacy(bond, pubKey)
+	_, ok = declTx.Unwrap().(TxDeclareCandidacy)
+	assert.True(ok, "%#v", declTx)
+
+	// One of these two should be defined...
+	// revTx := TxRevokeCandidacy{pubKey}.Wrap()
+	// // revTx := NewTxRevokeCandidacy(pubKey)
+	// _, ok = revTx.Unwrap().(TxRevokeCandidacy)
+	// assert.True(ok, "%#v", revTx)
+}
+
+func TestSerializeTx(t *testing.T) {
+	assert := assert.New(t)
+
+	// make sure all types construct properly
+	pubKey := newPubKey("1234567890")
+	bond := coin.Coin{Denom: "ATOM", Amount: 1234321}
+
+	cases := []struct {
+		tx sdk.Tx
+	}{
+		{NewTxUnbond(bond, pubKey)},
+		{NewTxDeclareCandidacy(bond, pubKey)},
+		{NewTxDeclareCandidacy(bond, pubKey)},
+		// {NewTxRevokeCandidacy(pubKey)},
+	}
+
+	for i, tc := range cases {
+		var tx sdk.Tx
+		bs := wire.BinaryBytes(tc.tx)
+		err := wire.ReadBinaryBytes(bs, &tx)
+		if assert.NoError(err, "%d", i) {
+			assert.Equal(tc.tx, tx, "%d", i)
+		}
 	}
 }
